@@ -178,7 +178,27 @@ const Booking = () => {
 
       if (bookingError) throw bookingError;
 
-      toast.success("Booking confirmed successfully!");
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke("send-booking-email", {
+          body: {
+            to: customerEmail,
+            customerName: customerName,
+            bookingReference: booking.booking_reference,
+            roomName: room.name,
+            checkIn: format(checkIn, "yyyy-MM-dd"),
+            checkOut: format(checkOut, "yyyy-MM-dd"),
+            guests: guests,
+            totalPrice: calculateTotal(),
+            type: "confirmation",
+          },
+        });
+      } catch (emailError) {
+        console.error("Email error:", emailError);
+        // Don't fail the booking if email fails
+      }
+
+      toast.success("Booking confirmed successfully! Check your email for confirmation.");
       navigate(`/manage-booking?ref=${booking.booking_reference}`);
     } catch (error: any) {
       console.error("Booking error:", error);
