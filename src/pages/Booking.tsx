@@ -199,7 +199,7 @@ const Booking = () => {
       }
 
       toast.success("Booking confirmed successfully! Check your email for confirmation.");
-      navigate(`/manage-booking?ref=${booking.booking_reference}`);
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Booking error:", error);
       toast.error(error.message || "Failed to create booking");

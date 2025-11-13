@@ -8,8 +8,9 @@ import Rooms from "./pages/Rooms";
 import Booking from "./pages/Booking";
 import ManageBooking from "./pages/ManageBooking";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/admin/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import AdminRooms from "./pages/admin/Rooms";
 import AdminReservations from "./pages/admin/Reservations";
 import AdminCustomers from "./pages/admin/Customers";
@@ -28,7 +29,8 @@ const App = () => (
           <Route path="/booking/:roomId" element={<Booking />} />
           <Route path="/manage-booking" element={<ManageBooking />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/rooms" element={<AdminRooms />} />
           <Route path="/admin/reservations" element={<AdminReservations />} />
           <Route path="/admin/customers" element={<AdminCustomers />} />
