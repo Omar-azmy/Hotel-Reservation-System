@@ -68,7 +68,27 @@ const ManageBooking = () => {
 
       if (error) throw error;
 
-      toast.success("Booking cancelled successfully");
+      // Send cancellation email
+      try {
+        await supabase.functions.invoke("send-booking-email", {
+          body: {
+            to: booking.customer_email,
+            customerName: booking.customer_name,
+            bookingReference: booking.booking_reference,
+            roomName: booking.rooms?.name || "Room",
+            checkIn: booking.check_in,
+            checkOut: booking.check_out,
+            guests: booking.guests,
+            totalPrice: Number(booking.total_price),
+            type: "cancellation",
+          },
+        });
+      } catch (emailError) {
+        console.error("Email error:", emailError);
+        // Don't fail the cancellation if email fails
+      }
+
+      toast.success("Booking cancelled successfully! Check your email for confirmation.");
       refetch();
     } catch (error: any) {
       console.error("Cancel error:", error);
