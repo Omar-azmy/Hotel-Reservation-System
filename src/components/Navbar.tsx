@@ -87,13 +87,18 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             {user ? (
               <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/dashboard">
+                    <User className="h-4 w-4 mr-2" />
+                    My Dashboard
+                  </Link>
+                </Button>
                 {isAdmin && (
                   <Button variant="outline" size="sm" asChild>
                     <Link to="/admin/dashboard">Admin</Link>
                   </Button>
                 )}
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <User className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
               </>
