@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Hotel, LayoutDashboard, DoorOpen, Calendar, Users, LogOut } from "lucide-react";
+import { Hotel, LayoutDashboard, DoorOpen, Calendar, Users, LogOut, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -96,6 +96,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               >
                 <DoorOpen className="h-4 w-4 mr-2" />
                 Rooms
+              </Button>
+            </Link>
+            <Link to="/admin/calendar">
+              <Button
+                variant={isActive("/admin/calendar") ? "secondary" : "ghost"}
+                className="w-full justify-start"
+              >
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Calendar
               </Button>
             </Link>
             <Link to="/admin/reservations">
