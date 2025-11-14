@@ -9,6 +9,7 @@ import Booking from "./pages/Booking";
 import ManageBooking from "./pages/ManageBooking";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import RoomDetail from "./pages/RoomDetail";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminRooms from "./pages/admin/Rooms";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/manage-booking" element={<ManageBooking />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/room/:roomId" element={<RoomDetail />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/rooms" element={<AdminRooms />} />
           <Route path="/admin/calendar" element={<AdminCalendar />} />

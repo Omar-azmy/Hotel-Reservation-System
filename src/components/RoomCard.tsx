@@ -1,8 +1,10 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Wifi, Coffee, Tv } from "lucide-react";
+import { Users, Wifi, Coffee, Tv, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Room {
   id: string;
@@ -21,6 +23,22 @@ interface RoomCardProps {
 }
 
 const RoomCard = ({ room }: RoomCardProps) => {
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+
+  useEffect(() => {
+    fetchRating();
+  }, [room.id]);
+
+  const fetchRating = async () => {
+    const [avgData, countData] = await Promise.all([
+      supabase.rpc("get_room_average_rating", { p_room_id: room.id }),
+      supabase.rpc("get_room_review_count", { p_room_id: room.id }),
+    ]);
+
+    if (avgData.data !== null) setAverageRating(Number(avgData.data));
+    if (countData.data !== null) setReviewCount(Number(countData.data));
+  };
   const getTypeLabel = (type: string) => {
     switch (type) {
       case "standard":
@@ -57,7 +75,18 @@ const RoomCard = ({ room }: RoomCardProps) => {
 
       <CardHeader>
         <div className="flex justify-between items-start">
-          <h3 className="font-serif text-2xl font-semibold">{room.name}</h3>
+          <div>
+            <h3 className="font-serif text-2xl font-semibold">{room.name}</h3>
+            {reviewCount > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold">{averageRating.toFixed(1)}</span>
+                <span className="text-sm text-muted-foreground">
+                  ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
+                </span>
+              </div>
+            )}
+          </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-accent">${room.price_per_night}</div>
             <div className="text-sm text-muted-foreground">per night</div>
