@@ -10,11 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { User, Calendar, CreditCard } from "lucide-react";
+import { User, Calendar, CreditCard, Star } from "lucide-react";
+import { ReviewForm } from "@/components/ReviewForm";
 
 interface Booking {
   id: string;
+  room_id: string;
   booking_reference: string;
   check_in: string;
   check_out: string;
@@ -38,6 +41,9 @@ const Dashboard = () => {
     phone: "",
   });
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [existingReviews, setExistingReviews] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     checkAuth();
@@ -89,6 +95,26 @@ const Dashboard = () => {
       toast.error("Failed to load bookings");
     } else {
       setBookings(data || []);
+      
+      // Check which bookings have reviews
+      if (data) {
+        const reviewChecks = await Promise.all(
+          data.map(async (booking) => {
+            const { data: review } = await supabase
+              .from("reviews")
+              .select("id")
+              .eq("booking_id", booking.id)
+              .maybeSingle();
+            return { bookingId: booking.id, hasReview: !!review };
+          })
+        );
+        
+        const reviewMap: Record<string, boolean> = {};
+        reviewChecks.forEach(({ bookingId, hasReview }) => {
+          reviewMap[bookingId] = hasReview;
+        });
+        setExistingReviews(reviewMap);
+      }
     }
   };
 
@@ -314,6 +340,27 @@ const Dashboard = () => {
                                           Cancel
                                         </Button>
                                       )}
+                                    {(booking.status === "completed" || 
+                                      (booking.status === "confirmed" && new Date(booking.check_out) < new Date())) &&
+                                      !existingReviews[booking.id] && (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            setSelectedBooking(booking);
+                                            setReviewDialogOpen(true);
+                                          }}
+                                        >
+                                          <Star className="h-4 w-4 mr-1" />
+                                          Write Review
+                                        </Button>
+                                      )}
+                                    {existingReviews[booking.id] && (
+                                      <Badge variant="secondary">
+                                        <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                        Reviewed
+                                      </Badge>
+                                    )}
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -432,6 +479,36 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Write a Review</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="font-semibold">{selectedBooking.rooms.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(selectedBooking.check_in), "MMM dd")} -{" "}
+                  {format(new Date(selectedBooking.check_out), "MMM dd, yyyy")}
+                </p>
+              </div>
+              <ReviewForm
+                bookingId={selectedBooking.id}
+                roomId={selectedBooking.room_id}
+                userId={user.id}
+                onSuccess={() => {
+                  setReviewDialogOpen(false);
+                  setSelectedBooking(null);
+                  fetchBookings(user.id);
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
