@@ -100,6 +100,64 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          photos: string[] | null
+          rating: number
+          review_text: string
+          room_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          photos?: string[] | null
+          rating: number
+          review_text: string
+          room_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          photos?: string[] | null
+          rating?: number
+          review_text?: string
+          room_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           amenities: string[]
@@ -178,6 +236,8 @@ export type Database = {
         Returns: boolean
       }
       generate_booking_reference: { Args: never; Returns: string }
+      get_room_average_rating: { Args: { p_room_id: string }; Returns: number }
+      get_room_review_count: { Args: { p_room_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
