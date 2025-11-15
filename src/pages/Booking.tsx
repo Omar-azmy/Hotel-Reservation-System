@@ -157,7 +157,7 @@ const Booking = () => {
 
       if (refError) throw refError;
 
-      // Create booking
+      // Create booking with pending payment status
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
         .insert({
@@ -171,39 +171,39 @@ const Booking = () => {
           check_out: format(checkOut, "yyyy-MM-dd"),
           guests,
           total_price: calculateTotal(),
-          status: "confirmed",
+          status: "pending",
+          payment_status: "pending",
         })
         .select()
         .single();
 
       if (bookingError) throw bookingError;
 
-      // Send confirmation email
-      try {
-        await supabase.functions.invoke("send-booking-email", {
+      // Create Stripe payment session
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+        "create-payment",
+        {
           body: {
-            to: customerEmail,
+            bookingId: booking.id,
+            amount: calculateTotal(),
+            customerEmail: customerEmail,
             customerName: customerName,
-            bookingReference: booking.booking_reference,
+            bookingReference: bookingRef,
             roomName: room.name,
             checkIn: format(checkIn, "yyyy-MM-dd"),
             checkOut: format(checkOut, "yyyy-MM-dd"),
-            guests: guests,
-            totalPrice: calculateTotal(),
-            type: "confirmation",
           },
-        });
-      } catch (emailError) {
-        console.error("Email error:", emailError);
-        // Don't fail the booking if email fails
-      }
+        }
+      );
 
-      toast.success("Booking confirmed successfully! Check your email for confirmation.");
-      navigate("/dashboard");
+      if (paymentError) throw paymentError;
+
+      // Redirect to Stripe Checkout
+      toast.success("Redirecting to payment...");
+      window.location.href = paymentData.url;
     } catch (error: any) {
       console.error("Booking error:", error);
       toast.error(error.message || "Failed to create booking");
-    } finally {
       setLoading(false);
     }
   };

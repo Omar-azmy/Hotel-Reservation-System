@@ -26,6 +26,8 @@ export type Database = {
           customer_phone: string | null
           guests: number
           id: string
+          payment_intent_id: string | null
+          payment_status: string | null
           room_id: string
           status: Database["public"]["Enums"]["booking_status"]
           total_price: number
@@ -42,6 +44,8 @@ export type Database = {
           customer_phone?: string | null
           guests: number
           id?: string
+          payment_intent_id?: string | null
+          payment_status?: string | null
           room_id: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price: number
@@ -58,6 +62,8 @@ export type Database = {
           customer_phone?: string | null
           guests?: number
           id?: string
+          payment_intent_id?: string | null
+          payment_status?: string | null
           room_id?: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price?: number
