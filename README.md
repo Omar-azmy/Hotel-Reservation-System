@@ -21,8 +21,6 @@ It includes:
 
 This repository contains a modern, web-based Hotel Reservation Management System (HRMS) tailored for a single City Business Hotel. The HRMS is designed to deliver a professional booking experience for guests and a streamlined management dashboard for hotel staff. It focuses on reliability (preventing double-bookings), a polished user experience across devices, and operational features that hotel personnel need to manage rooms, reservations, and customers.
 
-**Important:** This project is developed and managed with **Lovable**. You can run, edit, and publish the app directly from the Lovable dashboard using the project URL above — changes made in Lovable are committed automatically to this repo.
-
 ---
 
 ## What this README contains
