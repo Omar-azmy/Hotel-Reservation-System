@@ -13,8 +13,6 @@ It includes:
 * End‑to‑end booking logic with double‑booking prevention
 * Responsive and professional UI
 
-The project is implemented using modern web technologies and the **Lovable AI development environment**, which supports rapid prototyping and version-controlled code generation.
-
 **Project URL (Lovable):** [https://lovable.dev/projects/815e1a28-98b5-47e3-9d4a-b30585204f14](https://lovable.dev/projects/815e1a28-98b5-47e3-9d4a-b30585204f14)
 
 ---
