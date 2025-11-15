@@ -52,8 +52,13 @@ const handler = async (req: Request): Promise<Response> => {
           </h1>
           <p style="font-size: 16px; color: #333;">Dear ${customerName},</p>
           <p style="font-size: 14px; color: #666;">
-            Thank you for choosing our hotel! Your reservation has been confirmed.
+            Thank you for choosing our hotel! Your reservation has been confirmed and your payment has been processed successfully.
           </p>
+          
+          <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
+            <p style="margin: 0; color: #2e7d32; font-weight: bold;">✓ Payment Received</p>
+            <p style="margin: 5px 0 0 0; color: #2e7d32; font-size: 14px;">Your payment of $${totalPrice.toFixed(2)} has been successfully processed.</p>
+          </div>
           
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h2 style="color: #1a1a1a; margin-top: 0;">Booking Details</h2>
@@ -78,9 +83,9 @@ const handler = async (req: Request): Promise<Response> => {
                 <td style="padding: 8px 0;"><strong>Guests:</strong></td>
                 <td style="padding: 8px 0;">${guests}</td>
               </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Total Amount:</strong></td>
-                <td style="padding: 8px 0; font-size: 18px; color: #d4af37;"><strong>$${totalPrice.toFixed(2)}</strong></td>
+              <tr style="border-top: 2px solid #d4af37;">
+                <td style="padding: 8px 0;"><strong>Total Amount Paid:</strong></td>
+                <td style="padding: 8px 0; font-size: 18px; color: #4caf50;"><strong>$${totalPrice.toFixed(2)}</strong></td>
               </tr>
             </table>
           </div>
