@@ -13,7 +13,7 @@ It includes:
 * End‑to‑end booking logic with double‑booking prevention
 * Responsive and professional UI
 
-**Project URL (Lovable):** [https://lovable.dev/projects/815e1a28-98b5-47e3-9d4a-b30585204f14](https://lovable.dev/projects/815e1a28-98b5-47e3-9d4a-b30585204f14)
+**Project URL:** https://city-business-hotel.lovable.app
 
 ---
 
