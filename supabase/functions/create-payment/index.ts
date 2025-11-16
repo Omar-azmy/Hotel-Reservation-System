@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface PaymentRequest {
   bookingId: string;
+  roomId: string;
   amount: number;
   customerEmail: string;
   customerName: string;
@@ -49,6 +50,7 @@ serve(async (req) => {
 
     const {
       bookingId,
+      roomId,
       amount,
       customerEmail,
       customerName,
@@ -102,7 +104,7 @@ serve(async (req) => {
       ],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingId}`,
-      cancel_url: `${req.headers.get("origin")}/booking?roomId=${bookingId}`,
+      cancel_url: `${req.headers.get("origin")}/booking?roomId=${roomId}`,
       metadata: {
         bookingId,
         bookingReference,
