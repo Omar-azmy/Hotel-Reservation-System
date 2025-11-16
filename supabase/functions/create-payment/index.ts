@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,6 +19,19 @@ interface PaymentRequest {
   checkIn: string;
   checkOut: string;
 }
+
+// Validation schema
+const paymentRequestSchema = z.object({
+  bookingId: z.string().uuid("Invalid booking ID"),
+  roomId: z.string().uuid("Invalid room ID"),
+  amount: z.number().positive("Amount must be positive").max(1000000, "Amount too large"),
+  customerEmail: z.string().email("Invalid email address").max(255),
+  customerName: z.string().trim().min(2).max(100),
+  bookingReference: z.string().min(1).max(50),
+  roomName: z.string().trim().min(1).max(200),
+  checkIn: z.string().min(1),
+  checkOut: z.string().min(1),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -48,6 +62,16 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.email);
 
+    const requestData: PaymentRequest = await req.json();
+
+    // Validate input data
+    const validationResult = paymentRequestSchema.safeParse(requestData);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      const firstError = validationResult.error.errors[0];
+      throw new Error(`Validation failed: ${firstError.message}`);
+    }
+
     const {
       bookingId,
       roomId,
@@ -58,7 +82,7 @@ serve(async (req) => {
       roomName,
       checkIn,
       checkOut,
-    }: PaymentRequest = await req.json();
+    } = validationResult.data;
 
     console.log("Payment request received:", { bookingId, amount, bookingReference });
 
