@@ -185,6 +185,7 @@ const Booking = () => {
         {
           body: {
             bookingId: booking.id,
+            roomId: roomId,
             amount: calculateTotal(),
             customerEmail: customerEmail,
             customerName: customerName,
@@ -196,14 +197,33 @@ const Booking = () => {
         }
       );
 
-      if (paymentError) throw paymentError;
+      if (paymentError) {
+        console.error("Payment error:", paymentError);
+        throw new Error(paymentError.message || "Failed to create payment session");
+      }
+      
+      if (!paymentData?.url) {
+        throw new Error("No payment URL received from server");
+      }
 
       // Redirect to Stripe Checkout
       toast.success("Redirecting to payment...");
       window.location.href = paymentData.url;
     } catch (error: any) {
       console.error("Booking error:", error);
-      toast.error(error.message || "Failed to create booking");
+      
+      // Provide user-friendly error messages
+      let errorMessage = "Failed to create booking. Please try again.";
+      
+      if (error.message?.includes("payment")) {
+        errorMessage = "Payment processing failed. Please check your payment details and try again.";
+      } else if (error.message?.includes("availability")) {
+        errorMessage = "This room is no longer available for the selected dates.";
+      } else if (error.message?.includes("authentication")) {
+        errorMessage = "Please sign in to complete your booking.";
+      }
+      
+      toast.error(errorMessage);
       setLoading(false);
     }
   };
