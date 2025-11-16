@@ -1,11 +1,18 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schema
+const verifyPaymentSchema = z.object({
+  sessionId: z.string().min(1, "Session ID is required"),
+  bookingId: z.string().uuid("Invalid booking ID"),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -21,12 +28,17 @@ serve(async (req) => {
   try {
     console.log("Verify payment function started");
 
-    const { sessionId, bookingId } = await req.json();
+    const requestData = await req.json();
 
-    if (!sessionId || !bookingId) {
-      throw new Error("Missing sessionId or bookingId");
+    // Validate input data
+    const validationResult = verifyPaymentSchema.safeParse(requestData);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      const firstError = validationResult.error.errors[0];
+      throw new Error(`Validation failed: ${firstError.message}`);
     }
 
+    const { sessionId, bookingId } = validationResult.data;
     console.log("Verifying payment for booking:", bookingId, "session:", sessionId);
 
     // Initialize Stripe

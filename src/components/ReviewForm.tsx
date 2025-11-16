@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Star, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 interface ReviewFormProps {
   bookingId: string;
@@ -18,6 +19,13 @@ export const ReviewForm = ({ bookingId, roomId, userId, onSuccess }: ReviewFormP
   const [reviewText, setReviewText] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  // Validation schema
+  const reviewSchema = z.object({
+    rating: z.number().int().min(1, "Please select a rating").max(5, "Rating must be between 1 and 5"),
+    reviewText: z.string().trim().min(10, "Review must be at least 10 characters").max(2000, "Review must be less than 2000 characters"),
+    photos: z.array(z.instanceof(File)).max(5, "Maximum 5 photos allowed"),
+  });
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -37,13 +45,16 @@ export const ReviewForm = ({ bookingId, roomId, userId, onSuccess }: ReviewFormP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (rating === 0) {
-      toast.error("Please select a rating");
-      return;
-    }
+    // Validate input data
+    const validationResult = reviewSchema.safeParse({
+      rating,
+      reviewText,
+      photos,
+    });
 
-    if (!reviewText.trim()) {
-      toast.error("Please write a review");
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 

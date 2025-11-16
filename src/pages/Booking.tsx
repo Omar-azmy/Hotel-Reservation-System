@@ -13,6 +13,7 @@ import { CalendarIcon } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { z } from "zod";
 
 const Booking = () => {
   const navigate = useNavigate();
@@ -26,6 +27,14 @@ const Booking = () => {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Validation schema
+  const bookingSchema = z.object({
+    customerName: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
+    customerEmail: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+    customerPhone: z.string().trim().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format").optional().or(z.literal("")),
+    guests: z.number().int().min(1, "At least 1 guest required").max(10, "Maximum 10 guests allowed"),
+  });
 
   const { data: room, isLoading: roomLoading } = useQuery({
     queryKey: ["room", roomId],
@@ -121,6 +130,20 @@ const Booking = () => {
 
     if (guests > room.capacity) {
       toast.error(`This room can accommodate maximum ${room.capacity} guests`);
+      return;
+    }
+
+    // Validate input data
+    const validationResult = bookingSchema.safeParse({
+      customerName,
+      customerEmail,
+      customerPhone,
+      guests: parseInt(guests as any),
+    });
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
