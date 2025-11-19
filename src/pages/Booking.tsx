@@ -14,6 +14,8 @@ import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { PhoneInput } from "@/components/PhoneInput";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 const Booking = () => {
   const navigate = useNavigate();
@@ -28,12 +30,35 @@ const Booking = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Validation schema
+  // Validation schema - supports Arabic and Latin characters
   const bookingSchema = z.object({
-    customerName: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
-    customerEmail: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-    customerPhone: z.string().trim().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format").optional().or(z.literal("")),
-    guests: z.number().int().min(1, "At least 1 guest required").max(10, "Maximum 10 guests allowed"),
+    // Support Arabic (ا-ي) and Latin (A-Z, a-z) characters, spaces, hyphens, apostrophes
+    customerName: z
+      .string()
+      .trim()
+      .min(2, "الاسم يجب أن يكون حرفين على الأقل / Name must be at least 2 characters")
+      .max(100, "الاسم يجب أن يكون أقل من 100 حرف / Name must be less than 100 characters")
+      .regex(
+        /^[\u0600-\u06FFa-zA-Z\s\-']+$/,
+        "الاسم يجب أن يحتوي على أحرف عربية أو إنجليزية فقط / Name must contain only Arabic or Latin characters"
+      ),
+    customerEmail: z
+      .string()
+      .email("بريد إلكتروني غير صحيح / Invalid email address")
+      .max(255, "البريد الإلكتروني يجب أن يكون أقل من 255 حرف / Email must be less than 255 characters"),
+    customerPhone: z
+      .string()
+      .refine(
+        (value) => !value || isValidPhoneNumber(value),
+        "رقم هاتف غير صحيح / Invalid phone number"
+      )
+      .optional()
+      .or(z.literal("")),
+    guests: z
+      .number()
+      .int()
+      .min(1, "يجب أن يكون هناك ضيف واحد على الأقل / At least 1 guest required")
+      .max(10, "الحد الأقصى 10 ضيوف / Maximum 10 guests allowed"),
   });
 
   const { data: room, isLoading: roomLoading } = useQuery({
@@ -265,14 +290,16 @@ const Booking = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Booking Details</CardTitle>
-                <CardDescription>Fill in your information to complete the reservation</CardDescription>
+                <CardTitle>تفاصيل الحجز / Booking Details</CardTitle>
+                <CardDescription>
+                  املأ معلوماتك لإتمام الحجز / Fill in your information to complete the reservation
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="checkIn">Check-in Date *</Label>
+                      <Label htmlFor="checkIn">تاريخ الوصول / Check-in Date *</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -283,7 +310,7 @@ const Booking = () => {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {checkIn ? format(checkIn, "PPP") : "Select date"}
+                            {checkIn ? format(checkIn, "PPP") : "اختر التاريخ / Select date"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -299,7 +326,7 @@ const Booking = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="checkOut">Check-out Date *</Label>
+                      <Label htmlFor="checkOut">تاريخ المغادرة / Check-out Date *</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -310,7 +337,7 @@ const Booking = () => {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {checkOut ? format(checkOut, "PPP") : "Select date"}
+                            {checkOut ? format(checkOut, "PPP") : "اختر التاريخ / Select date"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -327,7 +354,7 @@ const Booking = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="guests">Number of Guests *</Label>
+                    <Label htmlFor="guests">عدد الضيوف / Number of Guests *</Label>
                     <Input
                       id="guests"
                       type="number"
@@ -338,42 +365,47 @@ const Booking = () => {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Maximum capacity: {room.capacity} guests
+                      الحد الأقصى / Maximum capacity: {room.capacity} {room.capacity === 1 ? "ضيف / guest" : "ضيوف / guests"}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="name">الاسم الكامل / Full Name *</Label>
                     <Input
                       id="name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="John Doe"
+                      placeholder="أحمد علي / Ahmed Ali"
                       required
+                      dir="auto"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      يمكنك استخدام الأحرف العربية أو الإنجليزية / You can use Arabic or English characters
+                    </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">البريد الإلكتروني / Email *</Label>
                     <Input
                       id="email"
                       type="email"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      placeholder="john@example.com"
+                      placeholder="ahmed@example.com"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
+                    <Label htmlFor="phone">رقم الجوال / Phone Number</Label>
+                    <PhoneInput
                       value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
+                      onChange={(value) => setCustomerPhone(value || "")}
+                      placeholder="رقم الجوال مع كود الدولة / +20 123 456 7890"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      اختر كود الدولة وأدخل رقم الجوال / Select country code and enter phone number
+                    </p>
                   </div>
 
                   <Button type="submit" className="w-full" size="lg" disabled={loading}>
