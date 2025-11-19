@@ -20,13 +20,17 @@ interface PaymentRequest {
   checkOut: string;
 }
 
-// Validation schema
+// Validation schema - supports Arabic and Latin characters
 const paymentRequestSchema = z.object({
   bookingId: z.string().uuid("Invalid booking ID"),
   roomId: z.string().uuid("Invalid room ID"),
   amount: z.number().positive("Amount must be positive").max(1000000, "Amount too large"),
   customerEmail: z.string().email("Invalid email address").max(255),
-  customerName: z.string().trim().min(2).max(100),
+  // Support Arabic (ا-ي) and Latin (A-Z, a-z) characters, spaces, hyphens, apostrophes
+  customerName: z.string().trim().min(2).max(100).regex(
+    /^[\u0600-\u06FFa-zA-Z\s\-']+$/,
+    "Name must contain only Arabic or Latin characters"
+  ),
   bookingReference: z.string().min(1).max(50),
   roomName: z.string().trim().min(1).max(200),
   checkIn: z.string().min(1),
