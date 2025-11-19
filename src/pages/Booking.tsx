@@ -288,32 +288,32 @@ const Booking = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Booking Form */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="backdrop-blur-sm bg-card/50 border-border/50 shadow-xl transition-all duration-300 hover:shadow-2xl animate-fade-in">
               <CardHeader>
-                <CardTitle>تفاصيل الحجز / Booking Details</CardTitle>
+                <CardTitle>Booking Details</CardTitle>
                 <CardDescription>
-                  املأ معلوماتك لإتمام الحجز / Fill in your information to complete the reservation
+                  Fill in your information to complete the reservation
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="checkIn">تاريخ الوصول / Check-in Date *</Label>
+                      <Label htmlFor="checkIn">Check-in Date *</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal transition-all duration-300 hover:border-accent",
                               !checkIn && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {checkIn ? format(checkIn, "PPP") : "اختر التاريخ / Select date"}
+                            {checkIn ? format(checkIn, "PPP") : "Select date"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
+                        <PopoverContent className="w-auto p-0 animate-fade-in">
                           <Calendar
                             mode="single"
                             selected={checkIn}
@@ -326,21 +326,21 @@ const Booking = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="checkOut">تاريخ المغادرة / Check-out Date *</Label>
+                      <Label htmlFor="checkOut">Check-out Date *</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full justify-start text-left font-normal",
+                              "w-full justify-start text-left font-normal transition-all duration-300 hover:border-accent",
                               !checkOut && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {checkOut ? format(checkOut, "PPP") : "اختر التاريخ / Select date"}
+                            {checkOut ? format(checkOut, "PPP") : "Select date"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
+                        <PopoverContent className="w-auto p-0 animate-fade-in">
                           <Calendar
                             mode="single"
                             selected={checkOut}
@@ -354,7 +354,7 @@ const Booking = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="guests">عدد الضيوف / Number of Guests *</Label>
+                    <Label htmlFor="guests">Number of Guests *</Label>
                     <Input
                       id="guests"
                       type="number"
@@ -363,29 +363,31 @@ const Booking = () => {
                       value={guests}
                       onChange={(e) => setGuests(parseInt(e.target.value) || 1)}
                       required
+                      className="transition-all duration-300 focus:scale-[1.02]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      الحد الأقصى / Maximum capacity: {room.capacity} {room.capacity === 1 ? "ضيف / guest" : "ضيوف / guests"}
+                      Maximum capacity: {room.capacity} {room.capacity === 1 ? "guest" : "guests"}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name">الاسم الكامل / Full Name *</Label>
+                    <Label htmlFor="name">Full Name *</Label>
                     <Input
                       id="name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="أحمد علي / Ahmed Ali"
+                      placeholder="Ahmed Ali"
                       required
                       dir="auto"
+                      className="transition-all duration-300 focus:scale-[1.02]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      يمكنك استخدام الأحرف العربية أو الإنجليزية / You can use Arabic or English characters
+                      You can use Arabic or English characters
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني / Email *</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -393,22 +395,29 @@ const Booking = () => {
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder="ahmed@example.com"
                       required
+                      className="transition-all duration-300 focus:scale-[1.02]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">رقم الجوال / Phone Number</Label>
+                    <Label htmlFor="phone">Phone Number</Label>
                     <PhoneInput
                       value={customerPhone}
                       onChange={(value) => setCustomerPhone(value || "")}
-                      placeholder="رقم الجوال مع كود الدولة / +20 123 456 7890"
+                      placeholder="+20 123 456 7890"
+                      className="transition-all duration-300 focus-within:scale-[1.02]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      اختر كود الدولة وأدخل رقم الجوال / Select country code and enter phone number
+                      Select country code and enter phone number
                     </p>
                   </div>
 
-                  <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" 
+                    size="lg" 
+                    disabled={loading}
+                  >
                     {loading ? "Processing..." : "Confirm Booking"}
                   </Button>
                 </form>

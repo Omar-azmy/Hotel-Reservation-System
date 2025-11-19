@@ -49,35 +49,35 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Hotel className="h-6 w-6 text-accent" />
-            <span className="font-serif text-xl font-semibold">City Business Hotel</span>
+          <Link to="/" className="flex items-center space-x-2 group transition-all duration-300 hover:scale-105">
+            <Hotel className="h-6 w-6 text-accent transition-all duration-300 group-hover:rotate-12" />
+            <span className="font-serif text-xl font-semibold transition-colors duration-300 group-hover:text-accent">City Business Hotel</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
             <Link
               to="/"
-              className={`text-sm font-medium transition-colors hover:text-accent ${
-                isActive("/") ? "text-accent" : "text-foreground"
+              className={`text-sm font-medium transition-all duration-300 hover:text-accent hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-accent after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 ${
+                isActive("/") ? "text-accent after:scale-x-100" : "text-foreground"
               }`}
             >
               Home
             </Link>
             <Link
               to="/rooms"
-              className={`text-sm font-medium transition-colors hover:text-accent ${
-                isActive("/rooms") ? "text-accent" : "text-foreground"
+              className={`text-sm font-medium transition-all duration-300 hover:text-accent hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-accent after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 ${
+                isActive("/rooms") ? "text-accent after:scale-x-100" : "text-foreground"
               }`}
             >
               Rooms
             </Link>
             <Link
               to="/manage-booking"
-              className={`text-sm font-medium transition-colors hover:text-accent ${
-                isActive("/manage-booking") ? "text-accent" : "text-foreground"
+              className={`text-sm font-medium transition-all duration-300 hover:text-accent hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-accent after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 ${
+                isActive("/manage-booking") ? "text-accent after:scale-x-100" : "text-foreground"
               }`}
             >
               Manage Booking
@@ -87,23 +87,23 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             {user ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" className="transition-all duration-300 hover:scale-105" asChild>
                   <Link to="/dashboard">
                     <User className="h-4 w-4 mr-2" />
                     My Dashboard
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:border-accent" asChild>
                     <Link to="/admin/dashboard">Admin</Link>
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <Button variant="ghost" size="sm" className="transition-all duration-300 hover:scale-105" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
             ) : (
-              <Button variant="default" size="sm" asChild>
+              <Button variant="default" size="sm" className="transition-all duration-300 hover:scale-105 hover-glow" asChild>
                 <Link to="/auth">
                   <LogIn className="h-4 w-4 mr-2" />
                   Sign In
