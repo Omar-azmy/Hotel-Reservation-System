@@ -61,24 +61,25 @@ const RoomCard = ({ room }: RoomCardProps) => {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden hover-lift group transition-all duration-500 border-border/50 backdrop-blur-sm bg-card/80">
       <div className="relative h-64 overflow-hidden">
         <img
           src={room.images[0] || "/placeholder.svg"}
           alt={room.name}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
         />
-        <Badge className="absolute top-4 right-4 bg-accent text-accent-foreground">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <Badge className="absolute top-4 right-4 bg-accent text-accent-foreground shadow-lg backdrop-blur-sm animate-fade-in">
           {getTypeLabel(room.type)}
         </Badge>
       </div>
 
-      <CardHeader>
+      <CardHeader className="transition-all duration-300 group-hover:bg-muted/30">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-serif text-2xl font-semibold">{room.name}</h3>
+            <h3 className="font-serif text-2xl font-semibold transition-colors duration-300 group-hover:text-accent">{room.name}</h3>
             {reviewCount > 0 && (
-              <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center gap-1 mt-1 animate-fade-in">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-semibold">{averageRating.toFixed(1)}</span>
                 <span className="text-sm text-muted-foreground">
@@ -88,13 +89,13 @@ const RoomCard = ({ room }: RoomCardProps) => {
             )}
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-accent">${room.price_per_night}</div>
+            <div className="text-2xl font-bold text-accent gradient-text">${room.price_per_night}</div>
             <div className="text-sm text-muted-foreground">per night</div>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 transition-all duration-300">
         <p className="text-muted-foreground line-clamp-2">{room.description}</p>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -121,7 +122,11 @@ const RoomCard = ({ room }: RoomCardProps) => {
       </CardContent>
 
       <CardFooter>
-        <Button className="w-full" asChild disabled={!room.is_available}>
+        <Button 
+          className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover-glow" 
+          asChild 
+          disabled={!room.is_available}
+        >
           <Link to={`/booking?roomId=${room.id}`}>
             {room.is_available ? "Book Now" : "Unavailable"}
           </Link>
