@@ -91,7 +91,13 @@ const Booking = () => {
 
         if (profile) {
           setCustomerName(profile.full_name || "");
-          setCustomerPhone(profile.phone || "");
+          // Only set phone if it's in valid E.164 format
+          const phone = profile.phone || "";
+          if (phone && phone.startsWith("+")) {
+            setCustomerPhone(phone);
+          } else {
+            setCustomerPhone("");
+          }
         }
       }
     };
@@ -228,6 +234,7 @@ const Booking = () => {
       if (bookingError) throw bookingError;
 
       // Create Stripe payment session
+      console.log("Creating payment session...");
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
         "create-payment",
         {
@@ -245,18 +252,26 @@ const Booking = () => {
         }
       );
 
+      console.log("Payment response:", { paymentData, paymentError });
+
       if (paymentError) {
         console.error("Payment error:", paymentError);
         throw new Error(paymentError.message || "Failed to create payment session");
       }
       
       if (!paymentData?.url) {
+        console.error("No payment URL in response:", paymentData);
         throw new Error("No payment URL received from server");
       }
 
       // Redirect to Stripe Checkout
+      console.log("Redirecting to payment URL:", paymentData.url);
       toast.success("Redirecting to payment...");
-      window.location.href = paymentData.url;
+      
+      // Use a slight delay to ensure toast is visible
+      setTimeout(() => {
+        window.location.href = paymentData.url;
+      }, 500);
     } catch (error: any) {
       console.error("Booking error:", error);
       
