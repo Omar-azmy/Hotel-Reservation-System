@@ -246,40 +246,25 @@ const Booking = () => {
 
       if (bookingError) throw bookingError;
 
-      // Create Stripe payment session
-      console.log("Creating payment session...");
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
-        "create-payment",
-        {
-          body: {
-            bookingId: booking.id,
-            roomId: roomId,
-            amount: calculateTotal(),
-            customerEmail: customerEmail,
-            customerName: customerName,
-            bookingReference: bookingRef,
-            roomName: room.name,
-            checkIn: format(checkIn, "yyyy-MM-dd"),
-            checkOut: format(checkOut, "yyyy-MM-dd"),
-          },
-        }
-      );
-
-      console.log("Payment response:", { paymentData, paymentError });
-
-      if (paymentError) {
-        console.error("Payment error:", paymentError);
-        throw new Error(paymentError.message || "Failed to create payment session");
-      }
+      // Demo mode: Skip Stripe and confirm booking directly
+      console.log("Demo mode: Confirming booking without payment...");
       
-      if (!paymentData?.url) {
-        console.error("No payment URL in response:", paymentData);
-        throw new Error("No payment URL received from server");
-      }
+      // Update booking to confirmed status
+      const { error: updateError } = await supabase
+        .from("bookings")
+        .update({
+          status: "confirmed",
+          payment_status: "paid",
+          payment_intent_id: `demo_${bookingRef}`,
+        })
+        .eq("id", booking.id);
 
-      // Redirect to Stripe Checkout immediately
-      console.log("Redirecting to payment URL:", paymentData.url);
-      window.location.replace(paymentData.url);
+      if (updateError) throw updateError;
+
+      toast.success("Booking confirmed successfully!");
+      
+      // Redirect to success page
+      navigate(`/booking-success?bookingId=${booking.id}&reference=${bookingRef}`);
     } catch (error: any) {
       console.error("Booking error:", error);
       
