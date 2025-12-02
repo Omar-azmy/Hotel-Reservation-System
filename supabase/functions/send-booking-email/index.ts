@@ -3,6 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
+// Skip email sending in demo mode if no API key is configured
+const DEMO_MODE = !RESEND_API_KEY;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -26,6 +29,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Demo mode: Skip email sending if no API key configured
+    if (DEMO_MODE) {
+      console.log("Demo mode: Skipping email send (no RESEND_API_KEY configured)");
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Demo mode: Email not sent" 
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     // Authenticate the request
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
