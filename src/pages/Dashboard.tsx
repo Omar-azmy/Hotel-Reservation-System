@@ -12,22 +12,28 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { User, Calendar, CreditCard, Star } from "lucide-react";
+import { User, Calendar, CreditCard, Star, FileText } from "lucide-react";
 import { ReviewForm } from "@/components/ReviewForm";
+import { BookingReceipt } from "@/components/BookingReceipt";
 
 interface Booking {
   id: string;
   room_id: string;
   booking_reference: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string | null;
   check_in: string;
   check_out: string;
   guests: number;
   total_price: number;
   status: string;
+  payment_status: string;
   created_at: string;
   rooms: {
     name: string;
     type: string;
+    price_per_night: number;
   };
 }
 
@@ -42,6 +48,7 @@ const Dashboard = () => {
   });
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [existingReviews, setExistingReviews] = useState<Record<string, boolean>>({});
 
@@ -85,7 +92,7 @@ const Dashboard = () => {
       .from("bookings")
       .select(`
         *,
-        rooms (name, type)
+        rooms (name, type, price_per_night)
       `)
       .eq("customer_id", userId)
       .order("created_at", { ascending: false });
@@ -329,39 +336,54 @@ const Dashboard = () => {
                                     ${Number(booking.total_price).toFixed(2)}
                                   </TableCell>
                                   <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                                  <TableCell>
-                                    {(booking.status === "confirmed" || booking.status === "pending") &&
-                                      new Date(booking.check_in) > new Date() && (
-                                        <Button
-                                          size="sm"
-                                          variant="destructive"
-                                          onClick={() => cancelBooking(booking.id, booking)}
-                                        >
-                                          Cancel
-                                        </Button>
-                                      )}
-                                    {(booking.status === "completed" || 
-                                      (booking.status === "confirmed" && new Date(booking.check_out) < new Date())) &&
-                                      !existingReviews[booking.id] && (
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => {
-                                            setSelectedBooking(booking);
-                                            setReviewDialogOpen(true);
-                                          }}
-                                        >
-                                          <Star className="h-4 w-4 mr-1" />
-                                          Write Review
-                                        </Button>
-                                      )}
-                                    {existingReviews[booking.id] && (
-                                      <Badge variant="secondary">
-                                        <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                                        Reviewed
-                                      </Badge>
-                                    )}
-                                  </TableCell>
+                                   <TableCell>
+                                     <div className="flex gap-2 flex-wrap">
+                                       {(booking.status === "confirmed" || booking.status === "pending") &&
+                                         new Date(booking.check_in) > new Date() && (
+                                           <Button
+                                             size="sm"
+                                             variant="destructive"
+                                             onClick={() => cancelBooking(booking.id, booking)}
+                                           >
+                                             Cancel
+                                           </Button>
+                                         )}
+                                       {(booking.status === "completed" || 
+                                         (booking.status === "confirmed" && new Date(booking.check_out) < new Date())) &&
+                                         !existingReviews[booking.id] && (
+                                           <Button
+                                             size="sm"
+                                             variant="outline"
+                                             onClick={() => {
+                                               setSelectedBooking(booking);
+                                               setReviewDialogOpen(true);
+                                             }}
+                                           >
+                                             <Star className="h-4 w-4 mr-1" />
+                                             Write Review
+                                           </Button>
+                                         )}
+                                       {existingReviews[booking.id] && (
+                                         <Badge variant="secondary">
+                                           <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                           Reviewed
+                                         </Badge>
+                                       )}
+                                       {(booking.status === "confirmed" || booking.status === "completed") && (
+                                         <Button
+                                           size="sm"
+                                           variant="outline"
+                                           onClick={() => {
+                                             setSelectedBooking(booking);
+                                             setReceiptDialogOpen(true);
+                                           }}
+                                         >
+                                           <FileText className="h-4 w-4 mr-1" />
+                                           Receipt
+                                         </Button>
+                                       )}
+                                     </div>
+                                   </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -506,6 +528,18 @@ const Dashboard = () => {
                 }}
               />
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Receipt Dialog */}
+      <Dialog open={receiptDialogOpen} onOpenChange={setReceiptDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Booking Receipt</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <BookingReceipt booking={selectedBooking} />
           )}
         </DialogContent>
       </Dialog>

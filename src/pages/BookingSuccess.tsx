@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { BookingReceipt } from "@/components/BookingReceipt";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const BookingSuccess = () => {
   const navigate = useNavigate();
@@ -104,18 +106,25 @@ const BookingSuccess = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-4 py-20">
-        <Card className="max-w-2xl mx-auto">
+      <div className="container mx-auto px-4 py-12">
+        <Card className="max-w-4xl mx-auto">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <CheckCircle2 className="h-16 w-16 text-green-500" />
             </div>
             <CardTitle className="font-serif text-3xl">Booking Confirmed!</CardTitle>
             <CardDescription className="text-lg">
-              Your payment has been processed successfully
+              Your booking has been confirmed successfully
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <Tabs defaultValue="summary" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="receipt">Receipt</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="summary" className="space-y-6 mt-6">
             <div className="bg-muted/50 rounded-lg p-6 space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground">Booking Reference</p>
@@ -159,14 +168,20 @@ const BookingSuccess = () => {
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <Button onClick={() => navigate("/dashboard")} className="flex-1">
-                View My Bookings
-              </Button>
-              <Button onClick={() => navigate("/rooms")} variant="outline" className="flex-1">
-                Browse More Rooms
-              </Button>
-            </div>
+                <div className="flex gap-4">
+                  <Button onClick={() => navigate("/dashboard")} className="flex-1">
+                    View My Bookings
+                  </Button>
+                  <Button onClick={() => navigate("/rooms")} variant="outline" className="flex-1">
+                    Browse More Rooms
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="receipt" className="mt-6">
+                <BookingReceipt booking={booking} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
