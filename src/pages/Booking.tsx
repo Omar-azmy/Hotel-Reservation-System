@@ -277,14 +277,9 @@ const Booking = () => {
         throw new Error("No payment URL received from server");
       }
 
-      // Redirect to Stripe Checkout
+      // Redirect to Stripe Checkout immediately
       console.log("Redirecting to payment URL:", paymentData.url);
-      toast.success("Redirecting to payment...");
-      
-      // Use a slight delay to ensure toast is visible
-      setTimeout(() => {
-        window.location.href = paymentData.url;
-      }, 500);
+      window.location.replace(paymentData.url);
     } catch (error: any) {
       console.error("Booking error:", error);
       
