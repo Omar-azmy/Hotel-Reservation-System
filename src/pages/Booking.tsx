@@ -148,23 +148,34 @@ const Booking = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted");
     
     if (!checkIn || !checkOut) {
+      console.log("Missing dates");
       toast.error("Please select check-in and check-out dates");
       return;
     }
 
     if (checkOut <= checkIn) {
+      console.log("Invalid date range");
       toast.error("Check-out date must be after check-in date");
       return;
     }
 
     if (guests > room.capacity) {
+      console.log("Too many guests");
       toast.error(`This room can accommodate maximum ${room.capacity} guests`);
       return;
     }
 
     // Validate input data
+    console.log("Validating form data:", {
+      customerName,
+      customerEmail,
+      customerPhone,
+      guests,
+    });
+
     const validationResult = bookingSchema.safeParse({
       customerName,
       customerEmail,
@@ -173,11 +184,13 @@ const Booking = () => {
     });
 
     if (!validationResult.success) {
+      console.log("Validation failed:", validationResult.error.errors);
       const firstError = validationResult.error.errors[0];
       toast.error(firstError.message);
       return;
     }
 
+    console.log("All validation passed, setting loading state");
     setLoading(true);
 
     try {
