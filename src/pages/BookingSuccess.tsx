@@ -11,13 +11,44 @@ const BookingSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const bookingId = searchParams.get("booking_id");
+  const bookingIdFromStripe = searchParams.get("booking_id");
+  const bookingIdFromDemo = searchParams.get("bookingId");
+  const reference = searchParams.get("reference");
   const [verifying, setVerifying] = useState(true);
   const [booking, setBooking] = useState<any>(null);
 
   useEffect(() => {
-    const verifyPayment = async () => {
-      if (!sessionId || !bookingId) {
+    const loadBooking = async () => {
+      // Demo mode - direct booking confirmation
+      if (bookingIdFromDemo && reference) {
+        try {
+          const { data, error } = await supabase
+            .from("bookings")
+            .select(`
+              *,
+              rooms:room_id (
+                name,
+                images,
+                price_per_night
+              )
+            `)
+            .eq("id", bookingIdFromDemo)
+            .single();
+
+          if (error) throw error;
+          setBooking(data);
+          setVerifying(false);
+          return;
+        } catch (error) {
+          console.error("Error loading booking:", error);
+          toast.error("Failed to load booking details");
+          navigate("/");
+          return;
+        }
+      }
+
+      // Stripe mode - payment verification
+      if (!sessionId || !bookingIdFromStripe) {
         toast.error("Invalid payment session");
         navigate("/");
         return;
@@ -25,7 +56,7 @@ const BookingSuccess = () => {
 
       try {
         const { data, error } = await supabase.functions.invoke("verify-payment", {
-          body: { sessionId, bookingId },
+          body: { sessionId, bookingId: bookingIdFromStripe },
         });
 
         if (error) throw error;
@@ -46,8 +77,8 @@ const BookingSuccess = () => {
       }
     };
 
-    verifyPayment();
-  }, [sessionId, bookingId, navigate]);
+    loadBooking();
+  }, [sessionId, bookingIdFromStripe, bookingIdFromDemo, reference, navigate]);
 
   if (verifying) {
     return (
