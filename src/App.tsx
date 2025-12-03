@@ -17,6 +17,8 @@ import AdminRooms from "./pages/admin/Rooms";
 import AdminReservations from "./pages/admin/Reservations";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminCalendar from "./pages/admin/Calendar";
+import AdminReports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/admin/calendar" element={<AdminCalendar />} />
           <Route path="/admin/reservations" element={<AdminReservations />} />
           <Route path="/admin/customers" element={<AdminCustomers />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
