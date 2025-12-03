@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { DoorOpen, Calendar, Users, DollarSign, TrendingUp } from "lucide-react";
+import { DoorOpen, Calendar, Users, DollarSign, TrendingUp, ArrowRight, Plus, Eye, BarChart3 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 
 interface BookingTrend {
@@ -23,6 +26,16 @@ interface PopularRoom {
   bookings: number;
 }
 
+interface RecentBooking {
+  id: string;
+  booking_reference: string;
+  customer_name: string;
+  status: string;
+  total_price: number;
+  created_at: string;
+  rooms?: { name: string };
+}
+
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalRooms: 0,
@@ -35,11 +48,32 @@ const Dashboard = () => {
   const [bookingTrends, setBookingTrends] = useState<BookingTrend[]>([]);
   const [roomOccupancy, setRoomOccupancy] = useState<RoomOccupancy[]>([]);
   const [popularRooms, setPopularRooms] = useState<PopularRoom[]>([]);
+  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
 
   useEffect(() => {
     fetchStats();
     fetchAnalytics();
+    fetchRecentBookings();
   }, []);
+
+  const fetchRecentBookings = async () => {
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, customer_name, status, total_price, created_at, rooms(name)")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setRecentBookings(data || []);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "confirmed": return "bg-green-500/10 text-green-700 border-green-500/20";
+      case "pending": return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+      case "cancelled": return "bg-red-500/10 text-red-700 border-red-500/20";
+      case "completed": return "bg-blue-500/10 text-blue-700 border-blue-500/20";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
 
   const fetchStats = async () => {
     const [roomsData, bookingsData, customersData] = await Promise.all([
@@ -198,6 +232,83 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">From confirmed bookings</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions & Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link to="/admin/rooms">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Room
+                </Button>
+              </Link>
+              <Link to="/admin/reservations">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <Eye className="h-4 w-4" />
+                  View All Reservations
+                </Button>
+              </Link>
+              <Link to="/admin/reports">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Generate Report
+                </Button>
+              </Link>
+              <Link to="/admin/calendar">
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <Calendar className="h-4 w-4" />
+                  View Calendar
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Recent Bookings */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Recent Bookings</CardTitle>
+              <Link to="/admin/reservations">
+                <Button variant="ghost" size="sm" className="gap-1">
+                  View All <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {recentBookings.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No recent bookings</p>
+              ) : (
+                <div className="space-y-3">
+                  {recentBookings.map((booking) => (
+                    <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{booking.customer_name}</span>
+                          <Badge variant="outline" className={getStatusColor(booking.status)}>
+                            {booking.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.rooms?.name} • {booking.booking_reference}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">${Number(booking.total_price).toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(booking.created_at), "MMM d, h:mm a")}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
