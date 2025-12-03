@@ -28,12 +28,31 @@ const Auth = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/");
+        await redirectBasedOnRole(session.user.id);
       }
     };
 
     checkAuth();
   }, [navigate]);
+
+  const checkIsAdmin = async (userId: string): Promise<boolean> => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    return !!data;
+  };
+
+  const redirectBasedOnRole = async (userId: string) => {
+    const isAdmin = await checkIsAdmin(userId);
+    if (isAdmin) {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +67,11 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success("Logged in successfully!");
-      navigate("/");
+      
+      // Redirect based on role
+      if (data.user) {
+        await redirectBasedOnRole(data.user.id);
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to log in");
@@ -69,7 +92,7 @@ const Auth = () => {
           data: {
             full_name: signupName,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
 
@@ -77,9 +100,9 @@ const Auth = () => {
 
       toast.success("Account created successfully! You can now log in.");
       
-      // Auto login after signup
+      // Auto login after signup - customers go to dashboard
       if (data.user) {
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       console.error("Signup error:", error);
