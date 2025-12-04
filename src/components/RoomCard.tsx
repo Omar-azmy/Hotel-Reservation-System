@@ -1,10 +1,11 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Wifi, Coffee, Tv, Star } from "lucide-react";
+import { Users, Wifi, Coffee, Tv, Star, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { QuickBookModal } from "./QuickBookModal";
 
 interface Room {
   id: string;
@@ -25,6 +26,7 @@ interface RoomCardProps {
 const RoomCard = ({ room }: RoomCardProps) => {
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const [quickBookOpen, setQuickBookOpen] = useState(false);
 
   useEffect(() => {
     fetchRating();
@@ -121,17 +123,33 @@ const RoomCard = ({ room }: RoomCardProps) => {
         </div>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         <Button 
-          className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover-glow" 
+          className="flex-1 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" 
+          variant="outline"
           asChild 
           disabled={!room.is_available}
         >
           <Link to={`/booking?roomId=${room.id}`}>
-            {room.is_available ? "Book Now" : "Unavailable"}
+            {room.is_available ? "Details" : "Unavailable"}
           </Link>
         </Button>
+        {room.is_available && (
+          <Button 
+            className="flex-1 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover-glow"
+            onClick={() => setQuickBookOpen(true)}
+          >
+            <Zap className="mr-1 h-4 w-4" />
+            Quick Book
+          </Button>
+        )}
       </CardFooter>
+
+      <QuickBookModal 
+        room={room} 
+        open={quickBookOpen} 
+        onOpenChange={setQuickBookOpen} 
+      />
     </Card>
   );
 };
