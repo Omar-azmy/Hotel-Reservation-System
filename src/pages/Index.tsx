@@ -148,7 +148,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-charcoal text-white py-12">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-white/80">© 2024 City Business Hotel. All rights reserved.</p>
+          <p className="text-white/80">© 2025 City Business Hotel. All rights reserved.</p>
         </div>
       </footer>
     </div>
