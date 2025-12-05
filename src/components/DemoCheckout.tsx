@@ -35,21 +35,30 @@ export const DemoCheckout = () => {
 
     try {
       // Update booking to confirmed
-      const { error } = await supabase
+      const { data: updatedBooking, error } = await supabase
         .from("bookings")
         .update({
           payment_status: "paid",
           status: "confirmed",
           payment_intent_id: `demo_pi_${Date.now()}`,
         })
-        .eq("id", bookingId);
+        .eq("id", bookingId)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
+
+      if (!updatedBooking) {
+        throw new Error("Booking not found");
+      }
 
       toast.success("Payment successful!");
       
       // Redirect to success page with demo flag
-      navigate(`/booking-success?booking_id=${bookingId}&demo=true`);
+      navigate(`/booking-success?booking_id=${bookingId}&demo=true`, { replace: true });
     } catch (error: any) {
       console.error("Demo payment error:", error);
       toast.error("Payment failed");
