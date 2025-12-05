@@ -126,16 +126,16 @@ export const QuickBookModal = ({ room, open, onOpenChange }: QuickBookModalProps
       if (bookingError) throw bookingError;
 
       // Redirect to demo checkout page
-      const checkoutParams = new URLSearchParams({
-        booking_id: booking.id,
-        amount: totalPrice.toString(),
-        room_name: room.name,
-        check_in: format(checkIn, "MMM dd, yyyy"),
-        check_out: format(checkOut, "MMM dd, yyyy"),
-      });
-      
       onOpenChange(false);
-      navigate(`/demo-checkout?${checkoutParams.toString()}`);
+      navigate("/demo-checkout", {
+        state: {
+          bookingId: booking.id,
+          amount: totalPrice,
+          roomName: room.name,
+          checkIn: format(checkIn, "MMM dd, yyyy"),
+          checkOut: format(checkOut, "MMM dd, yyyy"),
+        }
+      });
     } catch (error: any) {
       console.error("Quick book error:", error);
       toast.error(error.message || "Failed to process booking");
