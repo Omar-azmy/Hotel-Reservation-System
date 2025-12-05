@@ -125,28 +125,17 @@ export const QuickBookModal = ({ room, open, onOpenChange }: QuickBookModalProps
 
       if (bookingError) throw bookingError;
 
-      // Create Stripe checkout session
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke("create-payment", {
-        body: {
-          bookingId: booking.id,
-          roomId: room.id,
-          amount: totalPrice,
-          customerEmail: user.email,
-          customerName: profile?.full_name || user.email?.split("@")[0] || "Guest",
-          bookingReference: bookingRef,
-          roomName: room.name,
-          checkIn: format(checkIn, "MMM dd, yyyy"),
-          checkOut: format(checkOut, "MMM dd, yyyy"),
-        },
+      // Redirect to demo checkout page
+      const checkoutParams = new URLSearchParams({
+        booking_id: booking.id,
+        amount: totalPrice.toString(),
+        room_name: room.name,
+        check_in: format(checkIn, "MMM dd, yyyy"),
+        check_out: format(checkOut, "MMM dd, yyyy"),
       });
-
-      if (paymentError) throw paymentError;
-
-      if (paymentData?.url) {
-        window.location.href = paymentData.url;
-      } else {
-        throw new Error("No checkout URL received");
-      }
+      
+      onOpenChange(false);
+      navigate(`/demo-checkout?${checkoutParams.toString()}`);
     } catch (error: any) {
       console.error("Quick book error:", error);
       toast.error(error.message || "Failed to process booking");
