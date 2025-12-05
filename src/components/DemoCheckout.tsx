@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CreditCard, Lock, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+interface LocationState {
+  bookingId: string;
+  amount: number;
+  roomName: string;
+  checkIn: string;
+  checkOut: string;
+}
+
 export const DemoCheckout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get("booking_id");
-  const amount = searchParams.get("amount");
-  const roomName = searchParams.get("room_name");
-  const checkIn = searchParams.get("check_in");
-  const checkOut = searchParams.get("check_out");
+  
+  // Support both location state and URL params (for backwards compatibility)
+  const state = location.state as LocationState | null;
+  const bookingId = state?.bookingId || searchParams.get("booking_id");
+  const amount = state?.amount?.toString() || searchParams.get("amount");
+  const roomName = state?.roomName || searchParams.get("room_name");
+  const checkIn = state?.checkIn || searchParams.get("check_in");
+  const checkOut = state?.checkOut || searchParams.get("check_out");
 
   const [processing, setProcessing] = useState(false);
   const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
