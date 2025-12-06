@@ -69,8 +69,11 @@ export const DemoCheckout = () => {
 
       toast.success("Payment successful!");
       
-      // Redirect to success page with demo flag
-      navigate(`/booking-success?booking_id=${bookingId}&demo=true`, { replace: true });
+      // Redirect to success page with demo flag using state
+      navigate("/booking-success", { 
+        state: { bookingId, isDemo: true },
+        replace: true 
+      });
     } catch (error: any) {
       console.error("Demo payment error:", error);
       toast.error("Payment failed");

@@ -232,6 +232,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_booking_by_reference: {
+        Args: { p_booking_reference: string; p_customer_email: string }
+        Returns: boolean
+      }
       check_room_availability: {
         Args: {
           p_booking_id?: string
@@ -250,6 +254,24 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      lookup_booking_by_reference: {
+        Args: { p_booking_reference: string; p_customer_email: string }
+        Returns: {
+          booking_reference: string
+          check_in: string
+          check_out: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          guests: number
+          id: string
+          payment_status: string
+          room_id: string
+          status: string
+          total_price: number
+        }[]
       }
     }
     Enums: {
