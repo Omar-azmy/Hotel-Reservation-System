@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,22 @@ import { toast } from "sonner";
 import { BookingReceipt } from "@/components/BookingReceipt";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+interface LocationState {
+  bookingId: string;
+  isDemo: boolean;
+}
+
 const BookingSuccess = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+  
+  // Support both location state and URL params (backwards compatibility)
+  const state = location.state as LocationState | null;
+  const bookingId = state?.bookingId || searchParams.get("booking_id");
+  const isDemo = state?.isDemo || searchParams.get("demo") === "true";
   const sessionId = searchParams.get("session_id");
-  const bookingId = searchParams.get("booking_id");
-  const isDemo = searchParams.get("demo") === "true";
+  
   const [verifying, setVerifying] = useState(true);
   const [booking, setBooking] = useState<any>(null);
 

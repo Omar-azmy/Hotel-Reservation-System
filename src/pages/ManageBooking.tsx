@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
+
+interface BookingResult {
+  id: string;
+  booking_reference: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone: string | null;
+  room_id: string;
+  check_in: string;
+  check_out: string;
+  guests: number;
+  total_price: number;
+  status: string;
+  payment_status: string | null;
+  created_at: string;
+}
+
+interface RoomData {
+  id: string;
+  name: string;
+  description: string;
+  images: string[];
+}
 
 const ManageBooking = () => {
   const [searchParams] = useSearchParams();
@@ -18,37 +40,58 @@ const ManageBooking = () => {
   
   const [bookingRef, setBookingRef] = useState(initialRef || "");
   const [email, setEmail] = useState("");
-  const [searchAttempted, setSearchAttempted] = useState(!!initialRef);
+  const [booking, setBooking] = useState<BookingResult | null>(null);
+  const [room, setRoom] = useState<RoomData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [searchAttempted, setSearchAttempted] = useState(false);
 
-  const { data: booking, isLoading, refetch } = useQuery({
-    queryKey: ["booking", bookingRef, email],
-    queryFn: async () => {
-      if (!bookingRef || !email) return null;
-
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(`
-          *,
-          rooms (*)
-        `)
-        .eq("booking_reference", bookingRef)
-        .eq("customer_email", email)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: searchAttempted && !!bookingRef && !!email,
-  });
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingRef || !email) {
       toast.error("Please enter both booking reference and email");
       return;
     }
+
+    setIsLoading(true);
     setSearchAttempted(true);
-    refetch();
+
+    try {
+      // Use the security definer function to lookup booking
+      const { data, error } = await supabase
+        .rpc('lookup_booking_by_reference', {
+          p_booking_reference: bookingRef.toUpperCase(),
+          p_customer_email: email
+        });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const bookingData = data[0] as BookingResult;
+        setBooking(bookingData);
+
+        // Fetch room details (rooms table is public)
+        const { data: roomData, error: roomError } = await supabase
+          .from('rooms')
+          .select('id, name, description, images')
+          .eq('id', bookingData.room_id)
+          .single();
+
+        if (!roomError && roomData) {
+          setRoom(roomData);
+        }
+      } else {
+        setBooking(null);
+        setRoom(null);
+      }
+    } catch (error: any) {
+      console.error("Search error:", error);
+      toast.error("Failed to search for booking");
+      setBooking(null);
+      setRoom(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancelBooking = async () => {
@@ -60,13 +103,21 @@ const ManageBooking = () => {
 
     if (!confirmed) return;
 
+    setIsCancelling(true);
+
     try {
-      const { error } = await supabase
-        .from("bookings")
-        .update({ status: "cancelled" })
-        .eq("id", booking.id);
+      // Use the security definer function to cancel booking
+      const { data, error } = await supabase
+        .rpc('cancel_booking_by_reference', {
+          p_booking_reference: booking.booking_reference,
+          p_customer_email: booking.customer_email
+        });
 
       if (error) throw error;
+
+      if (!data) {
+        throw new Error("Booking not found or already cancelled");
+      }
 
       // Send cancellation email
       try {
@@ -75,7 +126,7 @@ const ManageBooking = () => {
             to: booking.customer_email,
             customerName: booking.customer_name,
             bookingReference: booking.booking_reference,
-            roomName: booking.rooms?.name || "Room",
+            roomName: room?.name || "Room",
             checkIn: booking.check_in,
             checkOut: booking.check_out,
             guests: booking.guests,
@@ -88,11 +139,15 @@ const ManageBooking = () => {
         // Don't fail the cancellation if email fails
       }
 
-      toast.success("Booking cancelled successfully! Check your email for confirmation.");
-      refetch();
+      toast.success("Booking cancelled successfully!");
+      
+      // Update local state
+      setBooking({ ...booking, status: "cancelled" });
     } catch (error: any) {
       console.error("Cancel error:", error);
       toast.error(error.message || "Failed to cancel booking");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -151,20 +206,22 @@ const ManageBooking = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  <Search className="mr-2 h-4 w-4" />
-                  Search Booking
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" />
+                      Search Booking
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
           </Card>
-
-          {isLoading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Searching for your booking...</p>
-            </div>
-          )}
 
           {searchAttempted && !isLoading && !booking && (
             <Card>
@@ -177,7 +234,7 @@ const ManageBooking = () => {
             </Card>
           )}
 
-          {booking && booking.rooms && (
+          {booking && (
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -189,15 +246,17 @@ const ManageBooking = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <img
-                    src={booking.rooms.images[0]}
-                    alt={booking.rooms.name}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                  <h3 className="font-serif text-xl font-semibold mb-2">{booking.rooms.name}</h3>
-                  <p className="text-muted-foreground">{booking.rooms.description}</p>
-                </div>
+                {room && (
+                  <div>
+                    <img
+                      src={room.images[0]}
+                      alt={room.name}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                    <h3 className="font-serif text-xl font-semibold mb-2">{room.name}</h3>
+                    <p className="text-muted-foreground">{room.description}</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -240,8 +299,16 @@ const ManageBooking = () => {
                     variant="destructive"
                     className="w-full"
                     onClick={handleCancelBooking}
+                    disabled={isCancelling}
                   >
-                    Cancel Booking
+                    {isCancelling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      "Cancel Booking"
+                    )}
                   </Button>
                 )}
               </CardContent>
