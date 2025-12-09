@@ -21,6 +21,7 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import { DemoCheckout } from "./components/DemoCheckout";
 import TestingDocumentation from "./pages/TestingDocumentation";
+import ProjectDiagrams from "./pages/ProjectDiagrams";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/demo-checkout" element={<DemoCheckout />} />
           <Route path="/testing-docs" element={<TestingDocumentation />} />
+          <Route path="/project-diagrams" element={<ProjectDiagrams />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
